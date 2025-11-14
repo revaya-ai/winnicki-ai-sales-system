@@ -2,7 +2,7 @@
 
 ## 📦 What You're Getting
 
-Your complete two-stage AI sales automation system is ready to deploy!
+A complete two-stage AI sales automation system. (n8n claude agent)
 
 ---
 
