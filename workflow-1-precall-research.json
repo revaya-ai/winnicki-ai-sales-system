@@ -1,0 +1,551 @@
+{
+  "name": "Winnicki - Pre-Call Research",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "winnicki-lead-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "winnicki-lead-intake"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "lead-id",
+              "name": "lead_id",
+              "value": "={{ 'LEAD-' + $now.format('YYYYMMDDHHmmss') + '-' + Math.random().toString(36).substr(2, 6).toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "research-date",
+              "name": "research_date",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate-lead-id",
+      "name": "Generate Lead ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a B2B research specialist for Winnicki Digital, a web development agency.\\n\\nResearch the following company and provide a comprehensive intelligence brief:\\n\\n**Company Name:** {{ $json.company_name }}\\n**Website:** {{ $json.website }}\\n**Industry Context:** {{ $json.interested_in }}\\n\\nYour task:\\n1. Analyze their website and online presence\\n2. Identify their market position and business model\\n3. Find recent news or announcements\\n4. Assess company size and stage (startup, growth, enterprise)\\n5. Identify key decision makers if possible\\n6. Note any technology stack or platforms they currently use\\n\\n**Company Information:**\\n- Name: Winnicki Digital\\n- Services: Website Development, E-commerce, SEO, Voice AI, Automation\\n- Platforms: Wix, Shopify, HighLevel, Webflow\\n\\nOutput format:\\n## Company Intelligence Brief\\n\\n**Company Overview:**\\n[2-3 sentences about the company]\\n\\n**Business Model:**\\n[How they make money, who they serve]\\n\\n**Market Position:**\\n[Their competitive standing, niche, unique value]\\n\\n**Current Web Presence:**\\n[Quality assessment of current website/digital presence]\\n\\n**Technology Stack:**\\n[What platforms/tools they currently use if identifiable]\\n\\n**Recent News/Activity:**\\n[Any recent developments, growth signals, or changes]\\n\\n**Decision Maker Profile:**\\n[Likely decision makers and their priorities]\\n\\n**Relevance to Winnicki Digital:**\\n[Why they're a good fit for our services]\\n\\nKeep insights actionable and focused on sales intelligence.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2,
+            "retryOnAllErrors": false
+          }
+        }
+      },
+      "id": "agent1-company-intelligence",
+      "name": "Agent 1: Company Intelligence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 100],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a B2B contact research specialist for Winnicki Digital.\\n\\nResearch the following contact and provide insights:\\n\\n**Contact Name:** {{ $json.first_name }} {{ $json.last_name }}\\n**Email:** {{ $json.email }}\\n**Company:** {{ $json.company_name }}\\n**Website:** {{ $json.website }}\\n\\nYour task:\\n1. Infer their role/title based on email domain and company\\n2. Assess their likely decision-making authority\\n3. Identify their probable priorities and pain points\\n4. Note communication style preferences\\n5. Find any public presence (LinkedIn would be ideal but you can't directly access it - make informed inferences)\\n\\nOutput format:\\n## Contact Research Brief\\n\\n**Likely Role:**\\n[Inferred job title and responsibilities]\\n\\n**Decision Authority:**\\n[Sole decision maker / Influencer / Must consult others]\\n\\n**Professional Background:**\\n[Likely experience level and expertise areas]\\n\\n**Key Priorities:**\\n[What they probably care about most in their role]\\n\\n**Probable Pain Points:**\\n[Common challenges for someone in this role at this company]\\n\\n**Communication Style:**\\n[Likely preferences - formal/casual, detail/big picture, etc.]\\n\\n**Best Approach:**\\n[How Shannon should position the conversation]\\n\\nBe specific and actionable. Use email domain and company context to make educated inferences.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent2-contact-research",
+      "name": "Agent 2: Contact Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 220],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a website analysis expert for Winnicki Digital.\\n\\nAnalyze the following website and provide actionable insights:\\n\\n**Website:** {{ $json.website }}\\n**Company:** {{ $json.company_name }}\\n**Their Interest:** {{ $json.interested_in }}\\n\\nYour task:\\n1. Evaluate current website quality and user experience\\n2. Identify technical strengths and weaknesses\\n3. Assess mobile responsiveness and performance\\n4. Identify missing features or opportunities\\n5. Note design trends and aesthetic appeal\\n6. Evaluate SEO and online visibility\\n\\nOutput format:\\n## Website Analysis\\n\\n**Overall Assessment:**\\n[1-2 sentence summary with quality score 1-10]\\n\\n**Strengths:**\\n- [List 2-3 positive aspects]\\n\\n**Weaknesses:**\\n- [List 2-4 issues or gaps]\\n\\n**Technical Observations:**\\n[Platform, performance, mobile-friendliness]\\n\\n**Design & UX:**\\n[Visual appeal, navigation, user experience]\\n\\n**SEO & Visibility:**\\n[Search presence, optimization level]\\n\\n**Opportunities for Winnicki Digital:**\\n[Specific improvements we could offer]\\n\\n**Talking Points for Discovery Call:**\\n[Key issues to discuss with the lead]\\n\\nBe constructive but honest. Focus on opportunities to add value.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent3-website-analysis",
+      "name": "Agent 3: Website Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 340],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a competitive intelligence analyst for Winnicki Digital.\\n\\nAnalyze the competitive landscape for this company:\\n\\n**Company:** {{ $json.company_name }}\\n**Industry:** {{ $json.interested_in }}\\n**Website:** {{ $json.website }}\\n\\nYour task:\\n1. Identify their likely competitors\\n2. Assess how they differentiate (or don't)\\n3. Identify industry trends affecting them\\n4. Note what competitors are doing well online\\n5. Find gaps in their market positioning\\n\\nOutput format:\\n## Competitive Context\\n\\n**Primary Competitors:**\\n[List 2-3 direct competitors]\\n\\n**Competitive Positioning:**\\n[How they position vs competitors, unique angles]\\n\\n**Industry Trends:**\\n[Relevant trends affecting their market]\\n\\n**Competitor Digital Presence:**\\n[What competitors are doing well online]\\n\\n**Market Gaps & Opportunities:**\\n[Where they could improve positioning]\\n\\n**Winnicki Digital's Advantage:**\\n[How our services uniquely address their competitive challenges]\\n\\nFocus on insights that help Shannon position our services competitively.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent4-competitive-context",
+      "name": "Agent 4: Competitive Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 460],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a sales discovery expert for Winnicki Digital.\\n\\nGenerate smart discovery questions for this lead:\\n\\n**Contact:** {{ $json.first_name }} {{ $json.last_name }}\\n**Company:** {{ $json.company_name }}\\n**Interest:** {{ $json.interested_in }}\\n**Additional Context:** {{ $json.additional_info }}\\n\\nYour task:\\nCreate 8-12 powerful discovery questions organized by category. Questions should:\\n- Uncover true needs and pain points\\n- Reveal budget and timeline\\n- Identify decision-making process\\n- Explore technical requirements\\n- Understand success criteria\\n\\nOutput format:\\n## Discovery Questions for Call\\n\\n**Current Situation:**\\n1. [Question about their current setup/challenges]\\n2. [Question about what prompted them to reach out now]\\n\\n**Goals & Objectives:**\\n3. [Question about their ideal outcome]\\n4. [Question about success metrics]\\n\\n**Decision Process:**\\n5. [Question about who else is involved]\\n6. [Question about timeline and urgency]\\n\\n**Budget & Investment:**\\n7. [Question about budget allocation]\\n8. [Question about ROI expectations]\\n\\n**Technical Requirements:**\\n9. [Question about integrations or specific needs]\\n10. [Question about current tools/platforms]\\n\\n**Priorities & Concerns:**\\n11. [Question about top priorities]\\n12. [Question about potential concerns or hesitations]\\n\\nMake questions conversational and open-ended. Avoid yes/no questions.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent5-discovery-questions",
+      "name": "Agent 5: Discovery Questions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 580],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a sales objection strategist for Winnicki Digital.\\n\\nAnticipate objections and prepare responses for this lead:\\n\\n**Company:** {{ $json.company_name }}\\n**Interest:** {{ $json.interested_in }}\\n**Context:** {{ $json.additional_info }}\\n\\nYour task:\\nIdentify 5-7 likely objections and provide strategic responses. Consider:\\n- Budget concerns\\n- Timeline pressures\\n- Technical complexity\\n- Competitive alternatives\\n- Internal resistance\\n- ROI uncertainty\\n\\nOutput format:\\n## Anticipated Objections & Responses\\n\\n**Objection 1: [Common price objection]**\\n*Strategic Response:* [How to reframe value vs cost]\\n\\n**Objection 2: [Timeline concern]**\\n*Strategic Response:* [How to address urgency and phasing]\\n\\n**Objection 3: [DIY or platform alternative]**\\n*Strategic Response:* [How to position expertise and custom solutions]\\n\\n**Objection 4: [Need to compare other vendors]**\\n*Strategic Response:* [How to differentiate Winnicki Digital]\\n\\n**Objection 5: [Internal approval needed]**\\n*Strategic Response:* [How to facilitate buy-in and decision-making]\\n\\n**Objection 6: [Technical complexity concerns]**\\n*Strategic Response:* [How to address implementation and support]\\n\\n**Objection 7: [ROI uncertainty]**\\n*Strategic Response:* [How to quantify value and outcomes]\\n\\n**Proactive Strategies:**\\n[How to address objections before they arise]\\n\\nFocus on empathy, value demonstration, and removing friction from the decision.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent6-objection-handling",
+      "name": "Agent 6: Objection Handling",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 700],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "agents_data",
+        "include": "allFields",
+        "options": {}
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate All Agents",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tq4zDWDhcQy_rQyv9mnxKv5K0Ugy9uwcEVTElNkjoQA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $('Generate Lead ID').item.json.lead_id }}",
+            "email": "={{ $('Webhook Trigger').item.json.body.email }}",
+            "first_name": "={{ $('Webhook Trigger').item.json.body.first_name }}",
+            "last_name": "={{ $('Webhook Trigger').item.json.body.last_name }}",
+            "company": "={{ $('Webhook Trigger').item.json.body.company_name }}",
+            "website": "={{ $('Webhook Trigger').item.json.body.website }}",
+            "phone": "={{ $('Webhook Trigger').item.json.body.phone }}",
+            "interested_in": "={{ $('Webhook Trigger').item.json.body.interested_in }}",
+            "additional_info": "={{ $('Webhook Trigger').item.json.body.additional_info }}",
+            "research_date": "={{ $('Generate Lead ID').item.json.research_date }}",
+            "company_intelligence": "={{ $('Agent 1: Company Intelligence').item.json.candidates[0].content.parts[0].text }}",
+            "contact_research": "={{ $('Agent 2: Contact Research').item.json.candidates[0].content.parts[0].text }}",
+            "website_analysis": "={{ $('Agent 3: Website Analysis').item.json.candidates[0].content.parts[0].text }}",
+            "competitive_context": "={{ $('Agent 4: Competitive Context').item.json.candidates[0].content.parts[0].text }}",
+            "discovery_questions": "={{ $('Agent 5: Discovery Questions').item.json.candidates[0].content.parts[0].text }}",
+            "anticipated_objections": "={{ $('Agent 6: Objection Handling').item.json.candidates[0].content.parts[0].text }}",
+            "status": "Awaiting Call"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "save-to-sheets",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1120, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "email-subject",
+              "name": "email_subject",
+              "value": "=🎯 Pre-Call Research: {{ $('Webhook Trigger').item.json.body.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "email-body",
+              "name": "email_body",
+              "value": "=<h1>Pre-Call Research Summary</h1>\n\n<p><strong>Lead:</strong> {{ $('Webhook Trigger').item.json.body.first_name }} {{ $('Webhook Trigger').item.json.body.last_name }}<br>\n<strong>Company:</strong> {{ $('Webhook Trigger').item.json.body.company_name }}<br>\n<strong>Email:</strong> {{ $('Webhook Trigger').item.json.body.email }}<br>\n<strong>Phone:</strong> {{ $('Webhook Trigger').item.json.body.phone }}<br>\n<strong>Website:</strong> <a href=\"{{ $('Webhook Trigger').item.json.body.website }}\">{{ $('Webhook Trigger').item.json.body.website }}</a><br>\n<strong>Interested In:</strong> {{ $('Webhook Trigger').item.json.body.interested_in }}</p>\n\n<p><strong>Additional Context:</strong><br>\n{{ $('Webhook Trigger').item.json.body.additional_info }}</p>\n\n<hr>\n\n<h2>📊 Company Intelligence</h2>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Agent 1: Company Intelligence').item.json.candidates[0].content.parts[0].text }}</pre>\n\n<h2>👤 Contact Research</h2>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Agent 2: Contact Research').item.json.candidates[0].content.parts[0].text }}</pre>\n\n<h2>🌐 Website Analysis</h2>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Agent 3: Website Analysis').item.json.candidates[0].content.parts[0].text }}</pre>\n\n<h2>🏆 Competitive Context</h2>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Agent 4: Competitive Context').item.json.candidates[0].content.parts[0].text }}</pre>\n\n<h2>❓ Discovery Questions</h2>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Agent 5: Discovery Questions').item.json.candidates[0].content.parts[0].text }}</pre>\n\n<h2>🛡️ Anticipated Objections</h2>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Agent 6: Objection Handling').item.json.candidates[0].content.parts[0].text }}</pre>\n\n<hr>\n\n<p><strong>Research Generated:</strong> {{ $('Generate Lead ID').item.json.research_date }}<br>\n<strong>Lead ID:</strong> {{ $('Generate Lead ID').item.json.lead_id }}</p>\n\n<p><a href=\"https://docs.google.com/spreadsheets/d/1tq4zDWDhcQy_rQyv9mnxKv5K0Ugy9uwcEVTElNkjoQA/edit\" style=\"display:inline-block;padding:12px 24px;background:#0066cc;color:white;text-decoration:none;border-radius:4px;font-weight:bold;\">View in Google Sheets</a></p>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-email",
+      "name": "Format Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "winnickidigital@gmail.com",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "={{ $json.email_body }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email to Shannon",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1560, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth",
+          "name": "Gmail OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"lead_id\": $('Generate Lead ID').item.json.lead_id, \"message\": \"Pre-call research completed successfully\" } }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1780, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Lead ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Lead ID": {
+      "main": [
+        [
+          {
+            "node": "Agent 1: Company Intelligence",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 2: Contact Research",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 3: Website Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 4: Competitive Context",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 5: Discovery Questions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent 6: Objection Handling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1: Company Intelligence": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 2: Contact Research": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 3: Website Analysis": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 4: Competitive Context": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 5: Discovery Questions": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 6: Objection Handling": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Agents": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Format Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Shannon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email to Shannon": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-14T00:00:00.000Z",
+  "versionId": ""
+}

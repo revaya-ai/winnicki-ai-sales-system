@@ -1,0 +1,491 @@
+{
+  "name": "Winnicki - Proposal Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "winnicki-post-call",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger-post-call",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "winnicki-post-call"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1tq4zDWDhcQy_rQyv9mnxKv5K0Ugy9uwcEVTElNkjoQA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.body.lead_email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnAllMatches": false
+        }
+      },
+      "id": "lookup-sheets",
+      "name": "Lookup Lead in Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a solutions architect for Winnicki Digital.\\n\\n**Context from Pre-Call Research:**\\n\\nCompany Intelligence:\\n{{ $('Lookup Lead in Sheets').item.json.company_intelligence }}\\n\\nWebsite Analysis:\\n{{ $('Lookup Lead in Sheets').item.json.website_analysis }}\\n\\nCompetitive Context:\\n{{ $('Lookup Lead in Sheets').item.json.competitive_context }}\\n\\n**Discovery Call Information:**\\n\\n- Services Needed: {{ $('Webhook Trigger').item.json.body.services_needed }}\\n- Pain Points: {{ $('Webhook Trigger').item.json.body.pain_points }}\\n- Business Goals: {{ $('Webhook Trigger').item.json.body.business_goals }}\\n- Budget Discussed: {{ $('Webhook Trigger').item.json.body.budget_discussed }}\\n- Timeline Preference: {{ $('Webhook Trigger').item.json.body.timeline_preference }}\\n- Call Notes: {{ $('Webhook Trigger').item.json.body.call_notes }}\\n\\n**Winnicki Digital Services:**\\n- Website Development (Wix, Shopify, HighLevel, Webflow)\\n- E-commerce Solutions\\n- SEO Services\\n- Voice AI Agents\\n- Business Automation\\n- CRM Integration\\n\\nYour task:\\nDesign a comprehensive solution that addresses their pain points and achieves their business goals. Be specific about:\\n1. Recommended service package\\n2. Platform recommendations with justification\\n3. Key features and functionality\\n4. Integration requirements\\n5. Phases of implementation\\n6. Success metrics\\n\\nOutput format:\\n## Recommended Solution\\n\\n**Solution Overview:**\\n[2-3 sentence summary of the complete solution]\\n\\n**Service Package:**\\n[List specific services included]\\n\\n**Platform & Technology:**\\n[Recommended platform with justification]\\n\\n**Key Features:**\\n- [Feature 1 and why it matters]\\n- [Feature 2 and why it matters]\\n- [Feature 3 and why it matters]\\n- [Continue for all major features]\\n\\n**Integrations:**\\n[What systems need to connect and why]\\n\\n**Implementation Phases:**\\nPhase 1: [Description]\\nPhase 2: [Description]\\nPhase 3: [Description]\\n\\n**Success Metrics:**\\n[How we'll measure project success]\\n\\n**Why This Approach:**\\n[Strategic rationale for this solution design]\\n\\nBe specific and technical. This will be used by the pricing calculator and timeline builder.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent7-solution-design",
+      "name": "Agent 7: Solution Design",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a pricing strategist for Winnicki Digital.\\n\\n**Solution Design (from previous agent):**\\n{{ $('Agent 7: Solution Design').item.json.candidates[0].content.parts[0].text }}\\n\\n**Budget Context:**\\n- Budget Discussed: {{ $('Webhook Trigger').item.json.body.budget_discussed }}\\n- Budget Amount: {{ $('Webhook Trigger').item.json.body.budget_amount }}\\n\\n**Winnicki Digital Pricing Structure:**\\n\\nSingle Page Websites:\\n- Base: $700\\n- Additional Page: $300\\n- Timeline: 1-2 weeks\\n\\nSmall Website Package:\\n- Base (5 pages): $1,999\\n- Additional Page: $300\\n- Blog Add-on: $500\\n- Training (per hour): $70\\n- Timeline: 2-3 weeks\\n\\nLarge Website Package:\\n- Base (15 pages): $3,999\\n- Additional Page: $200\\n- Blog Add-on: $400\\n- Training (per hour): $50\\n- Timeline: 4-6 weeks\\n\\nAdditional Services:\\n- SEO (monthly): $500-2,000\\n- Voice Agent Setup: $2,000-5,000\\n- Voice Agent (monthly): $200-500\\n- Automation (hourly): $150\\n\\nPayment Terms:\\n- Deposit: 50%\\n- Final Payment: 50%\\n- Proposal Valid: 14 days\\n\\nYour task:\\nCreate a detailed pricing breakdown that:\\n1. Aligns with the solution design\\n2. Respects the client's budget constraints\\n3. Clearly itemizes all components\\n4. Includes optional add-ons\\n5. Explains value for each line item\\n6. Offers payment flexibility if appropriate\\n\\nOutput format:\\n## Pricing Breakdown\\n\\n**Base Package: [Package Name]**\\n$X,XXX\\n[Description of what's included]\\n\\n**Core Deliverables:**\\n- Item 1: $XXX [What this includes]\\n- Item 2: $XXX [What this includes]\\n- Item 3: $XXX [What this includes]\\n\\n**Additional Features:**\\n- Feature 1: $XXX [Why this adds value]\\n- Feature 2: $XXX [Why this adds value]\\n\\n**Optional Add-Ons:**\\n- Add-on 1: $XXX [Benefits]\\n- Add-on 2: $XXX [Benefits]\\n\\n**Total Investment:**\\n- Base Package: $X,XXX\\n- Optional Add-ons: $X,XXX\\n- **Total: $X,XXX**\\n\\n**Payment Structure:**\\n- 50% Deposit: $X,XXX (due upon agreement)\\n- 50% Final: $X,XXX (due upon completion)\\n\\n**Value Justification:**\\n[Why this pricing represents excellent ROI]\\n\\n**Budget Alignment:**\\n[How this fits within their stated budget]\\n\\nBe transparent and confident. Show value, not just cost.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent8-pricing-calculator",
+      "name": "Agent 8: Pricing Calculator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a project management expert for Winnicki Digital.\\n\\n**Solution Design:**\\n{{ $('Agent 7: Solution Design').item.json.candidates[0].content.parts[0].text }}\\n\\n**Pricing Breakdown:**\\n{{ $('Agent 8: Pricing Calculator').item.json.candidates[0].content.parts[0].text }}\\n\\n**Client Preferences:**\\n- Timeline Preference: {{ $('Webhook Trigger').item.json.body.timeline_preference }}\\n- Priority Level: {{ $('Webhook Trigger').item.json.body.priority_level }}\\n\\nYour task:\\nCreate a realistic project timeline that:\\n1. Breaks down the implementation into phases\\n2. Includes milestones and deliverables\\n3. Specifies review/approval points\\n4. Accounts for dependencies\\n5. Aligns with client's timeline preference\\n6. Includes buffer time for revisions\\n\\nOutput format:\\n## Project Timeline\\n\\n**Total Duration:** [X weeks/months]\\n**Start Date:** [Upon contract signing]\\n**Estimated Completion:** [Date based on timeline]\\n\\n**Phase 1: Discovery & Planning** (Week 1)\\n- Kickoff meeting\\n- Requirements finalization\\n- Design mockups\\n- Technical architecture\\n- Deliverable: Approved design and project plan\\n\\n**Phase 2: Development** (Weeks 2-X)\\n- Core functionality build\\n- Content integration\\n- Feature implementation\\n- Deliverable: Functional website on staging\\n\\n**Phase 3: Review & Refinement** (Week X)\\n- Client review\\n- Feedback incorporation\\n- Content refinement\\n- QA testing\\n- Deliverable: Revised website ready for launch\\n\\n**Phase 4: Launch & Training** (Week X)\\n- Final approval\\n- Domain migration\\n- Go-live\\n- Team training\\n- Deliverable: Live website and training materials\\n\\n**Phase 5: Post-Launch Support** (Week X+1)\\n- Bug fixes\\n- Performance monitoring\\n- Client support\\n- Deliverable: Stable, optimized website\\n\\n**Key Milestones:**\\n- [Date]: [Milestone 1]\\n- [Date]: [Milestone 2]\\n- [Date]: [Milestone 3]\\n\\n**Dependencies:**\\n[What client needs to provide and when]\\n\\n**Timeline Alignment:**\\n[How this meets their stated timeline preference]\\n\\nBe realistic but optimistic. Account for client availability.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent9-timeline-builder",
+      "name": "Agent 9: Timeline Builder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyBycZecSHytgNdI6tM-EVeqMEBrEJ-m_Ls",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are Shannon Winnicki, writing a personalized proposal for a potential client.\\n\\n**CLIENT INFORMATION:**\\n- Name: {{ $('Lookup Lead in Sheets').item.json.first_name }} {{ $('Lookup Lead in Sheets').item.json.last_name }}\\n- Company: {{ $('Lookup Lead in Sheets').item.json.company }}\\n- Email: {{ $('Lookup Lead in Sheets').item.json.email }}\\n\\n**PRE-CALL RESEARCH:**\\n\\nCompany Intelligence:\\n{{ $('Lookup Lead in Sheets').item.json.company_intelligence }}\\n\\nContact Research:\\n{{ $('Lookup Lead in Sheets').item.json.contact_research }}\\n\\nWebsite Analysis:\\n{{ $('Lookup Lead in Sheets').item.json.website_analysis }}\\n\\n**DISCOVERY CALL INSIGHTS:**\\n\\nPain Points:\\n{{ $('Webhook Trigger').item.json.body.pain_points }}\\n\\nBusiness Goals:\\n{{ $('Webhook Trigger').item.json.body.business_goals }}\\n\\nCall Notes:\\n{{ $('Webhook Trigger').item.json.body.call_notes }}\\n\\n**SOLUTION COMPONENTS:**\\n\\nSolution Design:\\n{{ $('Agent 7: Solution Design').item.json.candidates[0].content.parts[0].text }}\\n\\nPricing:\\n{{ $('Agent 8: Pricing Calculator').item.json.candidates[0].content.parts[0].text }}\\n\\nTimeline:\\n{{ $('Agent 9: Timeline Builder').item.json.candidates[0].content.parts[0].text }}\\n\\nYour task:\\nWrite a comprehensive, personalized proposal that:\\n1. Opens with warm reference to your conversation\\n2. Demonstrates deep understanding of their situation\\n3. Clearly articulates their pain points\\n4. Presents the solution as the answer to their needs\\n5. Includes all technical details\\n6. Has transparent pricing\\n7. Shows realistic timeline\\n8. Addresses likely concerns proactively\\n9. Creates urgency without pressure\\n10. Makes next steps crystal clear\\n\\nTone: Professional but warm, confident but not pushy, consultative\\n\\nOutput format:\\n# Proposal for {{ $('Lookup Lead in Sheets').item.json.company }}\\n\\n**Prepared for:** {{ $('Lookup Lead in Sheets').item.json.first_name }} {{ $('Lookup Lead in Sheets').item.json.last_name }}\\n**Prepared by:** Shannon Winnicki, Winnicki Digital\\n**Date:** [Today's date]\\n**Valid Until:** [14 days from today]\\n\\n---\\n\\n## Dear {{ $('Lookup Lead in Sheets').item.json.first_name }},\\n\\n[Opening paragraph referencing your call and their situation]\\n\\n[Express understanding of their challenges]\\n\\n## Understanding Your Situation\\n\\n[Restate their pain points and goals in your own words, showing deep understanding]\\n\\n## Our Recommended Solution\\n\\n[Present solution design in client-friendly language]\\n\\n## What's Included\\n\\n[Detailed deliverables and features]\\n\\n## Investment\\n\\n[Pricing breakdown with value justification]\\n\\n## Project Timeline\\n\\n[Timeline with phases and milestones]\\n\\n## Why Winnicki Digital\\n\\n[Relevant case studies, expertise, and differentiators]\\n\\n## Addressing Your Questions\\n\\n[Proactively address concerns raised in call]\\n\\n## Next Steps\\n\\n1. [Clear action step 1]\\n2. [Clear action step 2]\\n3. [Clear action step 3]\\n\\n## Ready to Get Started?\\n\\n[Compelling close with call to action]\\n\\n---\\n\\n**Shannon Winnicki**\\nFounder, Winnicki Digital\\nhello@winnickidigital.com\\n(555) 123-4567\\nhttps://winnickidigital.com\\n\\nThis proposal should feel like a natural continuation of Shannon's discovery call conversation.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 40,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 2
+          }
+        }
+      },
+      "id": "agent10-proposal-writer",
+      "name": "Agent 10: Proposal Writer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1tq4zDWDhcQy_rQyv9mnxKv5K0Ugy9uwcEVTElNkjoQA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "call_date": "={{ $('Webhook Trigger').item.json.body.call_date }}",
+            "call_notes": "={{ $('Webhook Trigger').item.json.body.call_notes }}",
+            "budget_discussed": "={{ $('Webhook Trigger').item.json.body.budget_discussed }}",
+            "budget_amount": "={{ $('Webhook Trigger').item.json.body.budget_amount }}",
+            "timeline_preference": "={{ $('Webhook Trigger').item.json.body.timeline_preference }}",
+            "services_needed": "={{ JSON.stringify($('Webhook Trigger').item.json.body.services_needed) }}",
+            "pain_points": "={{ $('Webhook Trigger').item.json.body.pain_points }}",
+            "business_goals": "={{ $('Webhook Trigger').item.json.body.business_goals }}",
+            "priority_level": "={{ $('Webhook Trigger').item.json.body.priority_level }}",
+            "proposal_generated_date": "={{ $now.toISO() }}",
+            "status": "Proposal Sent"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": []
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Webhook Trigger').item.json.body.lead_email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-sheets-call-data",
+      "name": "Update Sheets with Call Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1560, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "upload",
+        "name": "=Proposal - {{ $('Lookup Lead in Sheets').item.json.company }} - {{ $now.format('YYYY-MM-DD') }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {
+          "mimeType": "text/plain"
+        },
+        "binaryData": false,
+        "fileContent": "={{ $('Agent 10: Proposal Writer').item.json.candidates[0].content.parts[0].text }}"
+      },
+      "id": "save-to-drive",
+      "name": "Save Proposal to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1780, 400],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "google-drive-oauth",
+          "name": "Google Drive OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1tq4zDWDhcQy_rQyv9mnxKv5K0Ugy9uwcEVTElNkjoQA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "proposal_url": "={{ $('Save Proposal to Google Drive').item.json.webViewLink }}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": []
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Webhook Trigger').item.json.body.lead_email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-sheets-proposal-url",
+      "name": "Update Sheets with Proposal URL",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2000, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "winnickidigital@gmail.com",
+        "subject": "=✅ Proposal Ready: {{ $('Lookup Lead in Sheets').item.json.company }}",
+        "emailType": "html",
+        "message": "=<h1>Proposal Generated Successfully</h1>\n\n<p>The proposal for <strong>{{ $('Lookup Lead in Sheets').item.json.first_name }} {{ $('Lookup Lead in Sheets').item.json.last_name }}</strong> at <strong>{{ $('Lookup Lead in Sheets').item.json.company }}</strong> has been generated.</p>\n\n<p><strong>Priority Level:</strong> {{ $('Webhook Trigger').item.json.body.priority_level }}</p>\n\n<p><a href=\"{{ $('Save Proposal to Google Drive').item.json.webViewLink }}\" style=\"display:inline-block;padding:12px 24px;background:#0066cc;color:white;text-decoration:none;border-radius:4px;font-weight:bold;\">View Proposal in Google Drive</a></p>\n\n<hr>\n\n<h2>Quick Summary</h2>\n<ul>\n  <li><strong>Services:</strong> {{ $('Webhook Trigger').item.json.body.services_needed }}</li>\n  <li><strong>Budget:</strong> {{ $('Webhook Trigger').item.json.body.budget_discussed }}</li>\n  <li><strong>Timeline:</strong> {{ $('Webhook Trigger').item.json.body.timeline_preference }}</li>\n</ul>\n\n<hr>\n\n<p><strong>Action Required:</strong> Review proposal and send to lead when ready.</p>\n\n<hr>\n\n<h3>Call Notes</h3>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Webhook Trigger').item.json.body.call_notes }}</pre>\n\n<h3>Pain Points Discussed</h3>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Webhook Trigger').item.json.body.pain_points }}</pre>\n\n<h3>Business Goals</h3>\n<pre style=\"background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;\">{{ $('Webhook Trigger').item.json.body.business_goals }}</pre>",
+        "options": {}
+      },
+      "id": "email-shannon",
+      "name": "Email Shannon",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2220, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth",
+          "name": "Gmail OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"company\": $('Lookup Lead in Sheets').item.json.company, \"proposal_url\": $('Save Proposal to Google Drive').item.json.webViewLink, \"message\": \"Proposal generated successfully\" } }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-webhook-2",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2440, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Lookup Lead in Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Lead in Sheets": {
+      "main": [
+        [
+          {
+            "node": "Agent 7: Solution Design",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 7: Solution Design": {
+      "main": [
+        [
+          {
+            "node": "Agent 8: Pricing Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 8: Pricing Calculator": {
+      "main": [
+        [
+          {
+            "node": "Agent 9: Timeline Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 9: Timeline Builder": {
+      "main": [
+        [
+          {
+            "node": "Agent 10: Proposal Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 10: Proposal Writer": {
+      "main": [
+        [
+          {
+            "node": "Update Sheets with Call Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheets with Call Data": {
+      "main": [
+        [
+          {
+            "node": "Save Proposal to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Proposal to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Update Sheets with Proposal URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheets with Proposal URL": {
+      "main": [
+        [
+          {
+            "node": "Email Shannon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Shannon": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-14T00:00:00.000Z",
+  "versionId": ""
+}
